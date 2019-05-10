@@ -8,6 +8,7 @@ class GPost {
     val ADD = "$ROOT/add"
     private var cookies = mapOf<String, String>()
     // post
+    @Throws(Exception::class)
     private fun post(
         url: String,
         data: Map<String, String>
@@ -20,6 +21,7 @@ class GPost {
     }
 
     fun login(username: String, password: String) {
+        cookies = mapOf()
         val data = mapOf("j_username" to username,
             "j_password" to password.md5())
         val res = post(LOGIN, data)
@@ -31,15 +33,19 @@ class GPost {
     }
 
     fun add(course: Course) {
-        if (course.done)
-            return
-        if (search(course)) {
-            val res = post(
-                "$ADD/${course.courseId}/${course.courseIndex}",
-                mapOf()
-            )
-            println(res.body())
-            course.done = true
+        try {
+            if (course.done)
+                return
+            if (search(course)) {
+                val res = post(
+                    "$ADD/${course.courseId}/${course.courseIndex}",
+                    mapOf()
+                )
+                println(res.body())
+                course.done = true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
     private fun search(course: Course):Boolean {
