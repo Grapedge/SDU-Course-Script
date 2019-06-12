@@ -3,7 +3,7 @@ import org.jsoup.Jsoup
 
 class GPost {
     val ROOT = "http://bkjwxk.sdu.edu.cn/b/xk/xs"
-    var LOGIN = "http://bkjwxk.sdu.edu.cn/b/ajaxLogin"
+    val LOGIN = "http://bkjwxk.sdu.edu.cn/b/ajaxLogin"
     val SEARCH = "$ROOT/kcsearch"
     val ADD = "$ROOT/add"
     private var cookies = mapOf<String, String>()
@@ -20,35 +20,43 @@ class GPost {
         return con.method(Connection.Method.POST).execute()
     }
 
-    fun login(username: String, password: String) {
+    fun login(username: String, password: String): Boolean {
         cookies = mapOf()
         val data = mapOf("j_username" to username,
             "j_password" to password.md5())
         val res = post(LOGIN, data)
         cookies = res.cookies()
         if (res.body().indexOf("success") != -1) {
-            println("=======登录成功=======")
+            println("成功")
+            Thread.sleep(2000)
+            return true
+        } else {
+            println("失败")
+            Thread.sleep(2000)
+            return false
         }
-        Thread.sleep(2000)
     }
 
-    fun add(course: Course) {
+    fun add(course: Course): Int {
         try {
-            if (course.done)
-                return
-            if (search(course)) {
+            if (course.done) return 0
+            val resCode = search(course)
+            if (resCode == 0) {
                 val res = post(
                     "$ADD/${course.courseId}/${course.courseIndex}",
                     mapOf()
                 )
-                println(res.body())
+                //println(res.body())
                 course.done = true
             }
+            return resCode
         } catch (e: Exception) {
+            //println("出现未知错误")
             e.printStackTrace()
+            return -1
         }
     }
-    private fun search(course: Course):Boolean {
+    private fun search(course: Course):Int {
         val res = post(
             SEARCH,
             mapOf("type" to "kc",
@@ -60,8 +68,10 @@ class GPost {
                 "kkxsh" to "")
         )
         val reg = Regex("\"KXH\":\"${course.courseIndex}\".*?\"kyl\":(\\d*)")
-        if (reg.findAll(res.body()).toList()[0].groupValues[1].toInt() > 0)
-            return true
-        return false
+        val list = reg.findAll(res.body()).toList()
+        if (list.isEmpty()) return 1
+        if (list[0].groupValues[1].toInt() > 0)
+            return 0
+        return 2
     }
 }
