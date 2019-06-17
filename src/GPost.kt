@@ -57,7 +57,7 @@ class GPost {
         }
     }
     private fun search(course: Course):Int {
-        val res = post(
+        val pre = post(
             SEARCH,
             mapOf("type" to "kc",
                 "currentPage" to "1",
@@ -67,11 +67,30 @@ class GPost {
                 "skjc" to "",
                 "kkxsh" to "")
         )
-        val reg = Regex("\"KXH\":\"${course.courseIndex}\".*?\"kyl\":(\\d*)")
-        val list = reg.findAll(res.body()).toList()
-        if (list.isEmpty()) return 1
-        if (list[0].groupValues[1].toInt() > 0)
-            return 0
-        return 2
+        val preReg = Regex("\"totalPages\":(\\d*)")
+        val temp = preReg.findAll(pre.body()).toList()
+        if (temp.isEmpty()) return -1
+        val pages = temp[0].groupValues[1].toInt()
+        var page = 1
+        while (page <= pages) {
+            val res = post(
+                SEARCH,
+                mapOf("type" to "kc",
+                    "currentPage" to page.toString(),
+                    "kch" to course.courseId,
+                    "jsh" to "",
+                    "skxq" to "",
+                    "skjc" to "",
+                    "kkxsh" to "")
+            )
+            val reg = Regex("\"KXH\":\"${course.courseIndex}\".*?\"kyl\":([+-]?(\\d*))")
+            //println("OUTPUT:${res.body()}")
+            val list = reg.findAll(res.body()).toList()
+            page++
+            if (list.isEmpty()) continue
+            else if (list[0].groupValues[1].toInt() > 0) return 0
+            else return 2
+        }
+        return 1
     }
 }
