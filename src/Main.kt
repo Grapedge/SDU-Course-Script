@@ -132,7 +132,7 @@ fun main() {
                         println("当前课余量不足，正在监听课余量变化")
                     }
                     -2 -> {
-                        println("检测到课余量但未能成功选择，建议您打开教务系统 ${post.ROOT} 手动确认")
+                        println("检测到课余量但未能成功选择，建议您打开教务系统 ${post.ROOT} ，确认该课程是否与其他课程冲突")
                     }
                     else -> {
                         println("出现未知错误")
@@ -172,7 +172,7 @@ fun main() {
     if (failNum == 0) {
         println("您的所有选课操作均已成功，建议您再次打开教务系统 ${post.ROOT} 进行确认")
     } else {
-        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT} 进行手动确认")
+        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT} 手动确认课程状况")
     }
 
 }
