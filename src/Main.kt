@@ -57,7 +57,8 @@ fun main() {
             println("有效的备选课程列表为空，无法继续，请检查配置文件是否正确")
             return
         }
-        else println("设置加载已完成")
+        else println("设置加载已完成\n========山大软件园交通委提醒您========" +
+                "\n\t\t抢课千万条，安全第一条。\n\t\t抢完不检查，亲人两行泪。\n===================================")
     } else {
         println("设置加载过程出现严重错误，系统自动退出")
         return
@@ -84,14 +85,14 @@ fun main() {
                 print("\t课程(${course.courseId}, ${course.courseIndex})")
                 when (statusCode) {
                     0 -> {
-                        println("已成功被选择")
+                        println("已成功被选择，请打开教务系统确认")
                         successCount++
                     }
                     1 -> {
-                        println("返回列表为空，系统可能未开放或已失效")
+                        println("未找到指定课程或指定课程课容量过大，请检查配置文件")
                     }
                     2 -> {
-                        println("正在进行中")
+                        println("当前课余量不足，正在监听中")
                     }
                     else -> {
                         println("出现未知错误")
@@ -107,7 +108,11 @@ fun main() {
                 loginTime = System.currentTimeMillis()
             }
         }
-        if (!loopInfoHeaderOut && count % 1 == 0)
+        if (successCount == courseList.size) {
+            println("您的所有选课操作均已成功，请打开教务系统确认已选择的课程")
+            break
+        }
+        if (loopInfoHeaderOut && count % 1000 == 0)
             println("【已进行 $count 次抢课，进度 $successCount/${courseList.size} 】")
     }
 }
