@@ -18,6 +18,8 @@ var username = ""
 var password = ""
 var courseList = mutableListOf<Course>()
 
+var post = GPost()
+
 fun readConfig(): Boolean {
     return try {
         val reader = BufferedReader(FileReader("config.ini"))
@@ -48,6 +50,75 @@ fun readConfig(): Boolean {
     }
 }
 
+fun waitForLogin() {
+    print("正在尝试登录教务系统...")
+    while (!post.login(username, password)) {
+        print("正在重新尝试登录教务系统...")
+    }
+}
+
+fun checkCourseList(): Int {
+    var sumCount = courseList.size
+    println("正在执行程序预检查：")
+    var allCheckedOut = true
+    post.refreshChosenList()
+    for (course in courseList) {
+        if (post.check(course, false)) {
+            println("\t课程${course}已在您的课程列表中")
+            course.done = true
+            sumCount--
+        } else {
+            if(post.search(course) == 1) {
+                println("\t课程${course}未能找到该课程，请注意检查配置文件")
+                allCheckedOut = false
+            } else {
+                println("\t课程${course}目标确认")
+            }
+        }
+    }
+    println("===================================")
+    if (sumCount == 0) {
+        println("所有课程已存在于您的列表中，没有可执行的操作")
+        println("程序退出")
+        return -1
+    } else {
+        if (allCheckedOut) println("程序预检查完毕，开始执行")
+        else {
+            println("有课程未能通过预检查，可能是因为课程序号填写错误，也可能是因为该课程暂未开放选课。")
+            println("建议您检查配置文件中填写的内容，确认填写的课程序号都是正确的。")
+            println("如果您确认您填写的内容都是正确的，那么您可以先启动本程序。等到该课程开放时，您可以第一时间选上该课程。")
+            println("如果您确认要开始操作，请输入\"y\"，并按下回车键确认")
+            if (Scanner(System.`in`).next() != "y") {
+                println("操作已取消，程序退出")
+                return -1
+            }
+        }
+    }
+    return sumCount
+}
+
+fun aftCheck() {
+    println("任务已完成，正在重新登陆教务系统进行自动检查")
+    Thread.sleep(1000)
+    waitForLogin()
+    println("自动检查结果：")
+    var failNum = 0
+    post.refreshChosenList()
+    for (course in courseList) {
+        if (post.check(course, false)) {
+            println("\t课程${course}已确认在课程列表中")
+        } else {
+            println("\t课程${course}未成功在列表中检测到，操作可能无效")
+            failNum++
+        }
+    }
+    if (failNum == 0) {
+        println("您的所有选课操作均已成功，建议您再次打开教务系统 ${post.ROOT} 进行确认")
+    } else {
+        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT} 手动确认课程状况")
+    }
+}
+
 fun main() {
     if (readConfig()) {
         if (username.isBlank() || password.isBlank() || username == "账号" || password == "密码") {
@@ -64,50 +135,12 @@ fun main() {
         println("设置加载过程出现严重错误，系统自动退出")
         return
     }
-    val post = GPost()
-    print("正在尝试登录教务系统...")
-    while (!post.login(username, password)) {
-        print("正在重新尝试登录教务系统...")
-    }
+    waitForLogin()
     var loginTime = System.currentTimeMillis()
     var count = 0
-    var sumCount = courseList.size
+    val sumCount = checkCourseList()
+    if (sumCount < 0) return
     var successCount = 0
-    println("正在执行程序预检查：")
-    var allCheckedOut = true
-    post.refreshChosenList()
-    for (course in courseList) {
-        if (post.check(course, false)) {
-            println("\t课程(${course.courseId}, ${course.courseIndex})已在您的课程列表中")
-            course.done = true
-            sumCount--
-        } else {
-            if(post.search(course) == 1) {
-                println("\t课程(${course.courseId}, ${course.courseIndex})未能找到该课程，请注意检查配置文件")
-                allCheckedOut = false
-            } else {
-                println("\t课程(${course.courseId}, ${course.courseIndex})目标确认")
-            }
-        }
-    }
-    println("===================================")
-    if (sumCount == 0) {
-        println("所有课程已存在于您的列表中，没有可执行的操作")
-        println("程序退出")
-        return
-    } else {
-        if (allCheckedOut) println("程序预检查完毕，开始执行")
-        else {
-            println("有课程未能通过预检查，可能是因为课程序号填写错误，也可能是因为该课程暂未开放选课。")
-            println("建议您检查配置文件中填写的内容，确认填写的课程序号都是正确的。")
-            println("如果您确认您填写的内容都是正确的，那么您可以先启动本程序。等到该课程开放时，您可以第一时间选上该课程。")
-            println("如果您确认要开始操作，请输入\"y\"，并按下回车键确认")
-            if (Scanner(System.`in`).next() != "y") {
-                println("操作已取消，程序退出")
-                return
-            }
-        }
-    }
     while (successCount < sumCount) {
         count++
         var loopInfoHeaderOut = false
@@ -119,7 +152,7 @@ fun main() {
                     loopInfoHeaderOut = true
                     println("在第 $count 次监听操作中：")
                 }
-                print("\t课程(${course.courseId}, ${course.courseIndex})")
+                print("\t课程${course}")
                 when (statusCode) {
                     0 -> {
                         println("已成功选择")
@@ -141,10 +174,8 @@ fun main() {
                 course.prevStatus = statusCode
             }
             if (System.currentTimeMillis() - loginTime >= 900000) {
-                print("教务系统会话已超时，正在尝试重新登录...")
-                while (!post.login(username, password)) {
-                    print("正在重新尝试登录教务系统...")
-                }
+                println("教务系统会话已超时，系统将自动重新登录")
+                waitForLogin()
                 loginTime = System.currentTimeMillis()
             }
         }
@@ -152,28 +183,6 @@ fun main() {
             println("【已进行 $count 次监听操作，进度 $successCount/${sumCount} 】")
     }
     println("===================================")
-    println("任务已完成，正在重新登陆教务系统进行自动检查")
-    Thread.sleep(1000)
-    print("正在尝试登录教务系统...")
-    while (!post.login(username, password)) {
-        print("正在重新尝试登录教务系统...")
-    }
-    println("自动检查结果：")
-    var failNum = 0
-    post.refreshChosenList()
-    for (course in courseList) {
-        if (post.check(course, false)) {
-            println("\t课程(${course.courseId}, ${course.courseIndex})已确认在课程列表中")
-        } else {
-            println("\t课程(${course.courseId}, ${course.courseIndex})未成功在列表中检测到，操作可能无效")
-            failNum++
-        }
-    }
-    if (failNum == 0) {
-        println("您的所有选课操作均已成功，建议您再次打开教务系统 ${post.ROOT} 进行确认")
-    } else {
-        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT} 手动确认课程状况")
-    }
-
+    aftCheck()
 }
 

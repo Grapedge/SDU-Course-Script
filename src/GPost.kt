@@ -27,14 +27,14 @@ class GPost {
             "j_password" to password.md5())
         val res = post(LOGIN, data)
         cookies = res.cookies()
-        if (res.body().indexOf("success") != -1) {
+        return if (res.body().indexOf("success") != -1) {
             println("成功")
             Thread.sleep(2000)
-            return true
+            true
         } else {
             println("失败")
             Thread.sleep(2000)
-            return false
+            false
         }
     }
 
@@ -43,7 +43,7 @@ class GPost {
             if (course.done) return 0
             val resCode = search(course)
             if (resCode == 0) {
-                val res = post(
+                post(
                     "$ADD/${course.courseId}/${course.courseIndex}",
                     mapOf()
                 )
@@ -60,7 +60,7 @@ class GPost {
         }
     }
 
-    var chosenList = "NULL"
+    private var chosenList = "NULL"
     fun refreshChosenList() {
         chosenList = post(CHOSEN, mapOf()).body()
     }
@@ -105,9 +105,9 @@ class GPost {
             //println("OUTPUT:${res.body()}")
             val list = reg.findAll(res.body()).toList()
             page++
-            if (list.isEmpty()) continue
-            else if (list[0].groupValues[1].toInt() > 0) return 0
-            else return 2
+            return if (list.isEmpty()) continue
+            else if (list[0].groupValues[1].toInt() > 0) 0
+            else 2
         }
         return 1
     }
