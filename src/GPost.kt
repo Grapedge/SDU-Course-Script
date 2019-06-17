@@ -2,10 +2,11 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 
 class GPost {
-    val ROOT = "http://bkjwxk.sdu.edu.cn/b/xk/xs"
-    val LOGIN = "http://bkjwxk.sdu.edu.cn/b/ajaxLogin"
-    val SEARCH = "$ROOT/kcsearch"
-    val ADD = "$ROOT/add"
+    val ROOT = "http://bkjwxk.sdu.edu.cn"
+    val LOGIN = "$ROOT/b/ajaxLogin"
+    val CHOSEN = "$ROOT/f/xk/xs/yxkc"
+    val SEARCH = "$ROOT/b/xk/xs/kcsearch"
+    val ADD = "$ROOT/b/xk/xs/add"
     private var cookies = mapOf<String, String>()
     // post
     @Throws(Exception::class)
@@ -47,6 +48,8 @@ class GPost {
                     mapOf()
                 )
                 //println(res.body())
+                Thread.sleep(200)
+                if (!check(course, true)) return -2
                 course.done = true
             }
             return resCode
@@ -56,7 +59,22 @@ class GPost {
             return -1
         }
     }
-    private fun search(course: Course):Int {
+
+    var chosenList = "NULL"
+    fun refreshChosenList() {
+        chosenList = post(CHOSEN, mapOf()).body()
+    }
+    fun check(course: Course, refresh: Boolean):Boolean {     //检查课程是否已在选课成功的列表中
+        if (chosenList == "NULL" || refresh) {
+            refreshChosenList()
+        }
+        val reg = Regex("value=\"${course.courseId}\\|${course.courseIndex}\"")
+        val list = reg.findAll(chosenList).toList()
+        if (list.isEmpty()) return false
+        return true
+    }
+
+    fun search(course: Course):Int {
         val pre = post(
             SEARCH,
             mapOf("type" to "kc",
