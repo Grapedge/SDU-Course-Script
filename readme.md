@@ -14,13 +14,7 @@ To非SDU的童鞋：本脚本是基于QH大学开发的在线选课系统运行�
 ## 使用方法
 您有两种方法可以使用该脚本，一种是到`Release`页面下载jar包运行，另外一种是下载源代码并执行Main.kt文件。
 
-注意，无论哪种方法，都要求您的电脑中**正确安装并配置**了`JDK11`。如果您不知道如何安装`JDK11`，请参考以下安装教程：
-
-- Windows10 [JDK11 JAVA11下载安装与快速配置环境变量教程](https://blog.csdn.net/weixin_40928253/article/details/83590136)
-- Mac OSX   [mac系统下安装Java开发环境（一）——JDK安装](https://jingyan.baidu.com/article/7f766daffd99354101e1d095.html) (本篇介绍的是安装JDK1.8，但原理和JDK11的安装差不多)
-- Linux     [linux18.04下安装的jdk11.0.2](https://www.cnblogs.com/hhxz/p/10547729.html)
-
-JDK11的下载链接：[Java SE Development Kit 11 Downloads](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)
+注意，无论哪种方法，都要求您的电脑中**正确安装并配置**了`JDK11`。如果您不知道如何安装`JDK11`，请参考`how-to-install-jdk.md`
 
 ### 下载jar包运行
 下载并解压zip文件，您将会得到`SDUClass.jar`文件和config.ini文件。
