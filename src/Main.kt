@@ -179,7 +179,7 @@ fun main() {
                 loginTime = System.currentTimeMillis()
             }
         }
-        if (loopInfoHeaderOut && count % 1 == 0)
+        if (loopInfoHeaderOut && count % 1000 == 0)
             println("【已进行 $count 次监听操作，进度 $successCount/${sumCount} 】")
     }
     println("===================================")
