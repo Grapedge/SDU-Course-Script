@@ -68,11 +68,11 @@ fun checkCourseList(): Int {
             course.done = true
             sumCount--
         } else {
-            if(post.search(course) == 1) {
+            if (post.search(course) <= 1) {
+                println("\t课程${course}目标确认")
+            } else {
                 println("\t课程${course}未能找到该课程，请注意检查配置文件")
                 allCheckedOut = false
-            } else {
-                println("\t课程${course}目标确认")
             }
         }
     }
