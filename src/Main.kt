@@ -82,7 +82,7 @@ fun checkCourseList(): Int {
         println("程序退出")
         return -1
     } else {
-        if (allCheckedOut) println("程序预检查完毕，开始执行")
+        if (allCheckedOut) println("程序预检查完毕，共 $sumCount 个目标，开始执行")
         else {
             println("有课程未能通过预检查，可能是因为课程序号填写错误，也可能是因为该课程暂未开放选课。")
             println("建议您检查配置文件中填写的内容，确认填写的课程序号都是正确的。")
@@ -152,23 +152,27 @@ fun main() {
                     loopInfoHeaderOut = true
                     println("在第 $count 次监听操作中：")
                 }
-                print("\t课程${course}")
+                print("\t课程$course")
                 when (statusCode) {
-                    0 -> {
+                    1 -> {
                         println("已成功选择")
                         successCount++
                     }
-                    1 -> {
+                    2 -> {
                         println("未找到，建议您检查配置文件")
                     }
-                    2 -> {
-                        println("当前课余量不足，正在监听课余量变化")
-                    }
-                    -2 -> {
+                    3 -> {
                         println("检测到课余量但未能成功选择，建议您打开教务系统 ${post.ROOT} ，确认该课程是否与其他课程冲突")
                     }
-                    else -> {
+                    4 -> {
                         println("出现未知错误")
+                    }
+                    5 -> {
+                        println("课余量不足但选课成功，该课程可能是抽签课程，建议您打开教务系统 ${post.ROOT} 确认")
+                        successCount++
+                    }
+                    else -> {
+                        println("当前课余量不足（${statusCode}），正在监听课余量变化")
                     }
                 }
                 course.prevStatus = statusCode
@@ -179,7 +183,7 @@ fun main() {
                 loginTime = System.currentTimeMillis()
             }
         }
-        if (loopInfoHeaderOut && count % 1000 == 0)
+        if (loopInfoHeaderOut || count % 1000 == 0)
             println("【已进行 $count 次监听操作，进度 $successCount/${sumCount} 】")
     }
     println("===================================")

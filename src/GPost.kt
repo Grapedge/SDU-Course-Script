@@ -40,23 +40,37 @@ class GPost {
 
     fun add(course: Course): Int {
         try {
-            if (course.done) return 0
-            val resCode = search(course)
-            if (resCode == 0) {
+            if (course.done) return 1
+            val resCode = search(course)        // 在总列表中查询此课程
+            if (resCode == 1) {                 // 查询到课余量
                 post(
                     "$ADD/${course.courseId}/${course.courseIndex}",
                     mapOf()
                 )
                 //println(res.body())
                 Thread.sleep(200)
-                if (!check(course, true)) return -2
-                course.done = true
+                return if (check(course, true)) {   // 检查是否真的选上了
+                    course.done = true
+                    1
+                } else 3
+            } else if (resCode < 0 && !course.triedToSubmit) {
+                course.triedToSubmit = true
+                post(
+                    "$ADD/${course.courseId}/${course.courseIndex}",
+                    mapOf()
+                )
+                //println(res.body())
+                Thread.sleep(200)
+                if (check(course, true)) {
+                    course.done = true
+                    return 5
+                }
             }
             return resCode
         } catch (e: Exception) {
             //println("出现未知错误")
             e.printStackTrace()
-            return -1
+            return 4
         }
     }
 
@@ -87,7 +101,7 @@ class GPost {
         )
         val preReg = Regex("\"totalPages\":(\\d*)")
         val temp = preReg.findAll(pre.body()).toList()
-        if (temp.isEmpty()) return -1
+        if (temp.isEmpty()) return 4
         val pages = temp[0].groupValues[1].toInt()
         var page = 1
         while (page <= pages) {
@@ -106,9 +120,9 @@ class GPost {
             val list = reg.findAll(res.body()).toList()
             page++
             return if (list.isEmpty()) continue
-            else if (list[0].groupValues[1].toInt() > 0) 0
-            else 2
+            else if (list[0].groupValues[1].toInt() > 0) 1
+            else list[0].groupValues[1].toInt()
         }
-        return 1
+        return 2
     }
 }
