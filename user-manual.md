@@ -1,4 +1,5 @@
 # SDU抢课脚本 用户使用说明
+这份说明是[AdemJensen](https://github.com/AdemJensen)提供的。
 ## 前言
 此脚本能够消除SDU的童鞋抢不到课的难受感觉。
 
