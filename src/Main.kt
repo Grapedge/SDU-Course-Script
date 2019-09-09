@@ -113,9 +113,9 @@ fun aftCheck() {
         }
     }
     if (failNum == 0) {
-        println("您的所有选课操作均已成功，建议您再次打开教务系统 ${post.ROOT} 进行确认")
+        println("您的所有选课操作均已成功，建议您再次打开教务系统 ${post.ROOT_SYS} 进行确认")
     } else {
-        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT} 手动确认课程状况")
+        println("有 $failNum 个课程未在列表中检测到，请登录教务网 ${post.ROOT_SYS} 手动确认课程状况")
     }
 }
 
@@ -162,13 +162,13 @@ fun main() {
                         println("未找到，建议您检查配置文件")
                     }
                     3 -> {
-                        println("检测到课余量但未能成功选择，建议您打开教务系统 ${post.ROOT} ，确认该课程是否与其他课程冲突")
+                        println("检测到课余量但未能成功选择，建议您打开教务系统 ${post.ROOT_SYS} ，确认该课程是否与其他课程冲突")
                     }
                     4 -> {
                         println("出现未知错误")
                     }
                     5 -> {
-                        println("课余量不足但选课成功，该课程可能是抽签课程，建议您打开教务系统 ${post.ROOT} 确认")
+                        println("课余量不足但选课成功，该课程可能是抽签课程，建议您打开教务系统 ${post.ROOT_SYS} 确认")
                         successCount++
                     }
                     else -> {

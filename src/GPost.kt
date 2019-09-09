@@ -2,11 +2,15 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 
 class GPost {
-    val ROOT = "http://bkjwxk.sdu.edu.cn"
-    val LOGIN = "$ROOT/b/ajaxLogin"
-    val CHOSEN = "$ROOT/f/xk/xs/yxkc"
-    val SEARCH = "$ROOT/b/xk/xs/kcsearch"
-    val ADD = "$ROOT/b/xk/xs/add"
+    val ROOT_SYS = "http://bkjwxk.sdu.edu.cn"
+    val ROOT_AUTH = "http://passt.sdu.edu.cn"
+    val LOGIN = "$ROOT_AUTH/cas/login?service=http://bkjwxk.sdu.edu.cn/f/j_spring_security_thauth_roaming_entry"
+    val CHOSEN = "$ROOT_SYS/f/xk/xs/yxkc"
+    val SEARCH = "$ROOT_SYS/b/xk/xs/kcsearch"
+    val ADD = "$ROOT_SYS/b/xk/xs/add"
+
+    var engine = DESEngine()
+
     private var cookies = mapOf<String, String>()
     // post
     @Throws(Exception::class)
@@ -22,20 +26,57 @@ class GPost {
     }
 
     fun login(username: String, password: String): Boolean {
-        cookies = mapOf()
-        val data = mapOf("j_username" to username,
-            "j_password" to password.md5())
-        val res = post(LOGIN, data)
-        cookies = res.cookies()
-        return if (res.body().indexOf("success") != -1) {
-            println("成功")
-            Thread.sleep(2000)
-            true
-        } else {
+
+        val indexPage = post(LOGIN, mapOf())
+        cookies = indexPage.cookies()
+
+        var reg = Regex("<form id=\"loginForm\" action=\"(.*?)\" method=\"post\">")
+        var list = reg.findAll(indexPage.body()).toList()
+        if (list.isEmpty()) return false
+        val submitAddr = list[0].groupValues[1]
+
+        reg = Regex("<input type=\"hidden\" id=\"lt\" name=\"lt\" value=\"(.*?)\" />")
+        list = reg.findAll(indexPage.body()).toList()
+        if (list.isEmpty()) return false
+        val token = list[0].groupValues[1]
+
+        reg = Regex("<input type=\"hidden\" name=\"execution\" value=\"(.*?)\" />")
+        list = reg.findAll(indexPage.body()).toList()
+        if (list.isEmpty()) return false
+        val execution = list[0].groupValues[1]
+
+        reg = Regex("<input type=\"hidden\" name=\"_eventId\" value=\"(.*?)\" />")
+        list = reg.findAll(indexPage.body()).toList()
+        if (list.isEmpty()) return false
+        val eventId = list[0].groupValues[1]
+
+        val data = mapOf(
+            "rsa" to engine.encode(username + password + token , "1" , "2" , "3"),
+            "ul" to username.length.toString(),
+            "pl" to password.length.toString(),
+            "lt" to token,
+            "execution" to execution,
+            "_eventId" to eventId
+        )
+        var res = post(ROOT_AUTH + submitAddr , data)
+        if (!res.hasCookie("sduxk")) {
             println("失败")
             Thread.sleep(2000)
-            false
+            return false;
         }
+        cookies = res.cookies()
+        val xk = res.cookie("sduxk")
+        res = post(LOGIN , mapOf())
+
+        cookies = mapOf(
+            "sduxk" to xk,
+            "JSESSIONID" to res.cookie("JSESSIONID"),
+            "index" to "1"
+        )
+
+        println("成功")
+        Thread.sleep(2000)
+        return true
     }
 
     fun add(course: Course): Int {
