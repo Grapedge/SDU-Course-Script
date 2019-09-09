@@ -48,7 +48,7 @@ class GPost {
                     mapOf()
                 )
                 //println(res.body())
-                Thread.sleep(200)
+                Thread.sleep(3000)
                 return if (check(course, true)) {   // 检查是否真的选上了
                     course.done = true
                     1
@@ -60,7 +60,7 @@ class GPost {
                     mapOf()
                 )
                 //println(res.body())
-                Thread.sleep(200)
+                Thread.sleep(3000)
                 if (check(course, true)) {
                     course.done = true
                     return 5
